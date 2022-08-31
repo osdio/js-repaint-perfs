@@ -1,6 +1,15 @@
-var DBMon = Elem.component({
+var DBMon = Elem.createComponent({
+
+  name: 'DBMon',
+
   init: function() {
-    this.loadSamples();
+    function update() {
+      var db = ENV.generateData().toArray();
+      this.setState({ databases: db });
+      Monitoring.renderRate.ping(); 
+      setTimeout(update.bind(this), ENV.timeout);
+    }
+    setTimeout(update.bind(this), ENV.timeout);
   },
 
   getInitialState: function() {
@@ -9,19 +18,12 @@ var DBMon = Elem.component({
     };
   },
 
-  loadSamples: function() {
-    var db = ENV.generateData().toArray();
-    this.setState({ databases: db });
-    Monitoring.renderRate.ping(); 
-    setTimeout(this.loadSamples, ENV.timeout);
-  },
-
   render: function() {
     var rows = this.state.databases.map(function(database) {
       var base = [
         Elem.el('td', { className: "dbname" }, [database.dbname]),
         Elem.el('td', { className: "query-count" }, [
-          Elem.el('span', { className: database.lastSample.countClassName }, [database.lastSample.queries.length])
+          Elem.el('span', { className: database.lastSample.countClassName }, [database.lastSample.nbQueries])
         ])
       ];
       base = base.concat(
@@ -45,4 +47,5 @@ var DBMon = Elem.component({
     return finalElem;
   }
 });
-DBMon().renderTo('#dbmon');
+
+Elem.render(DBMon, '#dbmon');
